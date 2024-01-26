@@ -1,8 +1,6 @@
 package com.android.todolist.bookmark
 
 import android.app.Activity
-import android.content.Context
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -11,12 +9,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
-import com.android.todolist.OnItemClickListener
 import com.android.todolist.data.TodoContentType
 import com.android.todolist.data.TodoModel
 import com.android.todolist.databinding.FragmentBookmarkBinding
 import com.android.todolist.RegisterTodoActivity
-import com.android.todolist.viewmodel.TodoListViewModel
+import com.android.todolist.todo.TodoListViewModel
 
 class BookmarkFragment : Fragment() {
     companion object {
@@ -46,15 +43,15 @@ class BookmarkFragment : Fragment() {
                     )
                 }
 
-                if (result.data?.getIntExtra(
-                        RegisterTodoActivity.EXTRA_ENTRY_TYPE,
-                        0
-                    ) == TodoContentType.DELETE.ordinal // entryType 확인
-                ) {
-                    viewModel.deleteTodoItem(todoModel) // DELETE -> deleteTodoItem
-                } else {
-                    viewModel.updateTodoItem(todoModel) // UPDATE -> updateTodoItem
-                }
+                /**
+                 * viewModel에서 entryType을 구분지으면 됨
+                 */
+                val entryType = result.data?.getIntExtra(
+                    RegisterTodoActivity.EXTRA_ENTRY_TYPE,
+                    0
+                ) ?: TodoContentType.UPDATE.ordinal
+
+                viewModel.handleTodoItem(entryType, todoModel)
             }
         }
 
@@ -79,12 +76,11 @@ class BookmarkFragment : Fragment() {
 
     private fun initView() {
         binding.recyclerViewBookmark.adapter = bookmarkListAdapter
-        bookmarkListAdapter.setItemChangedListener(object : OnItemClickListener {
-            override fun onClickSwitch(todoModel: TodoModel) {
+        bookmarkListAdapter.setItemChangedListener(
+            switchClickListener = { todoModel ->
                 viewModel.updateBookmarkStatus(todoModel)
-            }
-
-            override fun onClickItem(todoModel: TodoModel) {
+            },
+            itemClickListener = { todoModel ->
                 updateTodoLauncher.launch(
                     RegisterTodoActivity.newIntentForUpdate(
                         context = requireContext(),
@@ -92,12 +88,19 @@ class BookmarkFragment : Fragment() {
                     )
                 )
             }
-        })
+        )
     }
 
     private fun initViewModel() = with(viewModel) {
-        uiState.observe(viewLifecycleOwner) { state ->
-            bookmarkListAdapter.submitList(state.list.filter { it.isBookmarked })
+        /**
+         * filter는 viewModel에서 처리
+         */
+        uiState.observe(viewLifecycleOwner) {
+            viewModel.filterBookmarkedItems()
+        }
+
+        viewModel.filteredTodoList.observe(viewLifecycleOwner) { filteredList ->
+            bookmarkListAdapter.submitList(filteredList)
         }
     }
 

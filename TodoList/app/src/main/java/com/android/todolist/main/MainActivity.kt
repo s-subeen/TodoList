@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.viewpager2.widget.ViewPager2
-import com.android.todolist.data.TodoContentType
 import com.android.todolist.data.TodoModel
 import com.android.todolist.databinding.ActivityMainBinding
 import com.android.todolist.todo.TodoListFragment
