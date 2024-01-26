@@ -1,5 +1,7 @@
 package com.android.todolist.data
 
+import android.content.Intent
+import android.view.View
 import androidx.annotation.StringRes
 import com.android.todolist.R
 
@@ -18,14 +20,26 @@ data class TodoContentUiState(
     val content: String?
 )
 
-data class TodoContentButtonUiState(
+data class ContentButtonUiState(
     @StringRes val text: Int,
     val enabled: Boolean
 ) {
     companion object {
-        fun init() = TodoContentButtonUiState(
+        fun init() = ContentButtonUiState(
             text = R.string.button_create,
             enabled = false
+        )
+    }
+}
+
+data class TodoButtonUiState(
+    val buttonUiState: ContentButtonUiState,
+    val deleteButtonVisibility: Int
+) {
+    companion object {
+        fun init() = TodoButtonUiState(
+            buttonUiState = ContentButtonUiState.init(),
+            deleteButtonVisibility = View.GONE
         )
     }
 }
@@ -40,4 +54,9 @@ data class TodoErrorUiState(
             content = TodoContentMessage.PASS
         )
     }
+}
+
+sealed class TodoIntent {
+    data class RegularIntent(val intent: Intent) : TodoIntent()
+    data class DeleteIntent(val intent: Intent) : TodoIntent()
 }

@@ -6,18 +6,13 @@ import android.content.Intent
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
-import android.view.View
 import android.widget.EditText
 import androidx.activity.viewModels
 import androidx.core.widget.addTextChangedListener
 import com.android.todolist.data.TodoContentType
+import com.android.todolist.data.TodoIntent
 import com.android.todolist.data.TodoModel
 import com.android.todolist.databinding.ActivityRegisterTodoBinding
-import com.android.todolist.viewmodel.TodoContentViewModel
-import com.android.todolist.viewmodel.TodoContentViewModelFactory
-import java.util.UUID
-import kotlin.math.log
 
 class RegisterTodoActivity : AppCompatActivity() {
     companion object {
@@ -97,12 +92,32 @@ class RegisterTodoActivity : AppCompatActivity() {
             }
         }
 
-        buttonUiState.observe(this@RegisterTodoActivity) {
+        buttonUiState.observe(this@RegisterTodoActivity) { buttonState ->
             with(binding.btnRegisterTodo) {
-                setText(it.text)
-                isEnabled = it.enabled
+                setText(buttonState.buttonUiState.text)
+                isEnabled = buttonState.buttonUiState.enabled
+            }
+
+            /**
+             * btnDeleteItem.visibility viewModel로 옮겨서 처리
+             */
+            binding.btnDeleteItem.visibility = buttonState.deleteButtonVisibility
+        }
+
+        intentLiveData.observe(this@RegisterTodoActivity) { intent ->
+            when (intent) {
+                is TodoIntent.RegularIntent -> {
+                    setResult(Activity.RESULT_OK, intent.intent)
+                    finish()
+                }
+
+                is TodoIntent.DeleteIntent -> {
+                    setResult(Activity.RESULT_OK, intent.intent)
+                    finish()
+                }
             }
         }
+
     }
 
     private fun initView() = with(binding) {
@@ -113,38 +128,17 @@ class RegisterTodoActivity : AppCompatActivity() {
         btnRegisterTodo.setOnClickListener { // 등록/수정 버튼 클릭 했을 때
             val title = etTodoTitle.text.toString()
             val content = etTodoContent.text.toString()
-
-            val todoModelBuilder = TodoModel( // 데이터 설정
-                id = todoModel?.id ?: UUID.randomUUID().toString(),
-                title = title,
-                content = content,
-                isBookmarked = todoModel?.isBookmarked ?: false
-            )
-
-            val entryType = // entryType
-                if (contentType == TodoContentType.CREATE) TodoContentType.CREATE.ordinal
-                else TodoContentType.UPDATE.ordinal
-
-            val intent = Intent().apply {
-                putExtra(EXTRA_TODO_MODEL, todoModelBuilder)
-                putExtra(EXTRA_ENTRY_TYPE, entryType)
-            }
-
-            setResult(Activity.RESULT_OK, intent)
-            finish()
+            /**
+             * viewmodel로 옮겨서 처리
+             */
+            viewModel.createTodoModelIntent(title, content)
         }
 
-        btnDeleteItem.visibility =
-            if (contentType == TodoContentType.UPDATE) View.VISIBLE else View.GONE
-
         btnDeleteItem.setOnClickListener { // 삭제 버튼 클릭 했을 때
-            val deleteIntent = Intent().apply {
-                putExtra(EXTRA_TODO_MODEL, todoModel)
-                putExtra(EXTRA_ENTRY_TYPE, TodoContentType.DELETE.ordinal) // entryType = DELETE
-            }
-
-            setResult(Activity.RESULT_OK, deleteIntent)
-            finish()
+            /**
+             * viewmodel로 옮겨서 처리
+             */
+            viewModel.createDeleteIntent()
         }
     }
 
