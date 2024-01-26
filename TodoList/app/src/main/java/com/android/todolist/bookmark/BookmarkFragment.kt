@@ -1,6 +1,8 @@
 package com.android.todolist.bookmark
 
 import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -13,8 +15,8 @@ import com.android.todolist.OnItemClickListener
 import com.android.todolist.data.TodoContentType
 import com.android.todolist.data.TodoModel
 import com.android.todolist.databinding.FragmentBookmarkBinding
-import com.android.todolist.CreateTodoActivity
-import com.android.todolist.viewmodel.TodoViewModel
+import com.android.todolist.RegisterTodoActivity
+import com.android.todolist.viewmodel.TodoListViewModel
 
 class BookmarkFragment : Fragment() {
     companion object {
@@ -24,7 +26,7 @@ class BookmarkFragment : Fragment() {
     private var _binding: FragmentBookmarkBinding? = null
     private val binding: FragmentBookmarkBinding get() = _binding!!
 
-    private val viewModel: TodoViewModel by activityViewModels()
+    private val viewModel: TodoListViewModel by activityViewModels()
 
     private val bookmarkListAdapter by lazy {
         BookmarkListAdapter()
@@ -35,23 +37,23 @@ class BookmarkFragment : Fragment() {
             if (result.resultCode == Activity.RESULT_OK) {
                 val todoModel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     result.data?.getParcelableExtra(
-                        CreateTodoActivity.EXTRA_TODO_MODEL,
+                        RegisterTodoActivity.EXTRA_TODO_MODEL,
                         TodoModel::class.java
                     )
                 } else {
                     result?.data?.getParcelableExtra(
-                        CreateTodoActivity.EXTRA_TODO_MODEL
+                        RegisterTodoActivity.EXTRA_TODO_MODEL
                     )
                 }
 
                 if (result.data?.getIntExtra(
-                        CreateTodoActivity.EXTRA_ENTRY_TYPE,
+                        RegisterTodoActivity.EXTRA_ENTRY_TYPE,
                         0
-                    ) == TodoContentType.DELETE.ordinal
+                    ) == TodoContentType.DELETE.ordinal // entryType 확인
                 ) {
-                    viewModel.deleteTodoItem(todoModel)
+                    viewModel.deleteTodoItem(todoModel) // DELETE -> deleteTodoItem
                 } else {
-                    viewModel.updateTodoItem(todoModel)
+                    viewModel.updateTodoItem(todoModel) // UPDATE -> updateTodoItem
                 }
             }
         }
@@ -84,9 +86,8 @@ class BookmarkFragment : Fragment() {
 
             override fun onClickItem(todoModel: TodoModel) {
                 updateTodoLauncher.launch(
-                    CreateTodoActivity.newIntent(
+                    RegisterTodoActivity.newIntentForUpdate(
                         context = requireContext(),
-                        contentType = TodoContentType.UPDATE,
                         todoModel = todoModel
                     )
                 )

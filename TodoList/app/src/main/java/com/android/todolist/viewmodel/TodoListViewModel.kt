@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import com.android.todolist.data.TodoModel
 import com.android.todolist.data.TodoUiState
 
-class TodoViewModel : ViewModel() {
+class TodoListViewModel : ViewModel() {
     private val _uiState: MutableLiveData<TodoUiState> = MutableLiveData(TodoUiState.init())
     val uiState: LiveData<TodoUiState> get() = _uiState
 

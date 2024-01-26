@@ -31,13 +31,13 @@ data class TodoContentButtonUiState(
 }
 
 data class TodoErrorUiState(
-    val title: TodoCreateMessage,
-    val content: TodoCreateMessage
+    val title: TodoContentMessage,
+    val content: TodoContentMessage
 ) {
     companion object {
         fun init() = TodoErrorUiState(
-            title = TodoCreateMessage.PASS,
-            content = TodoCreateMessage.PASS
+            title = TodoContentMessage.PASS,
+            content = TodoContentMessage.PASS
         )
     }
 }

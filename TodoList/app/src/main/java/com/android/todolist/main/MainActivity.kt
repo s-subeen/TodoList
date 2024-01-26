@@ -9,9 +9,9 @@ import androidx.viewpager2.widget.ViewPager2
 import com.android.todolist.data.TodoContentType
 import com.android.todolist.data.TodoModel
 import com.android.todolist.databinding.ActivityMainBinding
-import com.android.todolist.todo.TodoFragment
-import com.android.todolist.CreateTodoActivity
-import com.android.todolist.CreateTodoActivity.Companion.EXTRA_TODO_MODEL
+import com.android.todolist.todo.TodoListFragment
+import com.android.todolist.RegisterTodoActivity
+import com.android.todolist.RegisterTodoActivity.Companion.EXTRA_TODO_MODEL
 import com.google.android.material.tabs.TabLayoutMediator
 
 class MainActivity : AppCompatActivity() {
@@ -37,7 +37,7 @@ class MainActivity : AppCompatActivity() {
                     )
                 }
 
-                val fragment = viewPagerAdapter.getTodoFragment() as? TodoFragment
+                val fragment = viewPagerAdapter.getTodoFragment() as? TodoListFragment
                 fragment?.addTodoItem(todoModel)
             }
         }
@@ -62,7 +62,7 @@ class MainActivity : AppCompatActivity() {
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                if (viewPagerAdapter.getFragment(position) is TodoFragment) {
+                if (viewPagerAdapter.getFragment(position) is TodoListFragment) {
                     btnAddTodoItem.show()
                 } else {
                     btnAddTodoItem.hide()
@@ -81,9 +81,8 @@ class MainActivity : AppCompatActivity() {
     private fun onCreateTodoItem() {
         binding.btnAddTodoItem.setOnClickListener {
             contentTodoLauncher.launch(
-                CreateTodoActivity.newIntent(
-                    this@MainActivity,
-                    contentType = TodoContentType.CREATE
+                RegisterTodoActivity.newIntentForCreate(
+                    this@MainActivity
                 )
             )
         }

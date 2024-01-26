@@ -1,12 +1,13 @@
 package com.android.todolist.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.android.todolist.R
 import com.android.todolist.data.TodoContentType
-import com.android.todolist.data.TodoCreateMessage
+import com.android.todolist.data.TodoContentMessage
 import com.android.todolist.data.TodoContentButtonUiState
 import com.android.todolist.data.TodoContentUiState
 import com.android.todolist.data.TodoErrorUiState
@@ -40,6 +41,7 @@ class TodoContentViewModel(
                 content = todoModel?.content
             )
         }
+        Log.d("TAG", "${contentType}")
     }
 
     private fun updateButtonText() {
@@ -59,19 +61,19 @@ class TodoContentViewModel(
         _errorUiState.value = errorUiState.value?.copy(content = getMessageValidContent(text))
     }
 
-    private fun getMessageValidTitle(text: String): TodoCreateMessage {
+    private fun getMessageValidTitle(text: String): TodoContentMessage {
         return if (text.isBlank()) {
-            TodoCreateMessage.TITLE_BLANK
+            TodoContentMessage.TITLE_BLANK
         } else {
-            TodoCreateMessage.PASS
+            TodoContentMessage.PASS
         }
     }
 
-    private fun getMessageValidContent(text: String): TodoCreateMessage {
+    private fun getMessageValidContent(text: String): TodoContentMessage {
         return if (text.isBlank()) {
-            TodoCreateMessage.CONTENT_BLANK
+            TodoContentMessage.CONTENT_BLANK
         } else {
-            TodoCreateMessage.PASS
+            TodoContentMessage.PASS
         }
     }
 
@@ -82,8 +84,8 @@ class TodoContentViewModel(
     }
 
     private fun isConfirmButtonEnable() = errorUiState.value?.let { state ->
-        state.title == TodoCreateMessage.PASS
-                && state.content == TodoCreateMessage.PASS
+        state.title == TodoContentMessage.PASS
+                && state.content == TodoContentMessage.PASS
     } ?: false
 
 

@@ -12,20 +12,20 @@ import androidx.fragment.app.activityViewModels
 import com.android.todolist.OnItemClickListener
 import com.android.todolist.data.TodoContentType
 import com.android.todolist.data.TodoModel
-import com.android.todolist.databinding.FragmentTodoBinding
-import com.android.todolist.CreateTodoActivity
-import com.android.todolist.viewmodel.TodoViewModel
+import com.android.todolist.RegisterTodoActivity
+import com.android.todolist.databinding.FragmentTodoListBinding
+import com.android.todolist.viewmodel.TodoListViewModel
 
-class TodoFragment : Fragment() {
+class TodoListFragment : Fragment() {
 
     companion object {
-        fun newInstance() = TodoFragment()
+        fun newInstance() = TodoListFragment()
     }
 
-    private var _binding: FragmentTodoBinding? = null
-    private val binding: FragmentTodoBinding get() = _binding!!
+    private var _binding: FragmentTodoListBinding? = null
+    private val binding: FragmentTodoListBinding get() = _binding!!
 
-    private val viewModel: TodoViewModel by activityViewModels()
+    private val viewModel: TodoListViewModel by activityViewModels()
 
     private val todoListAdapter by lazy {
         TodoListAdapter()
@@ -36,17 +36,17 @@ class TodoFragment : Fragment() {
             if (result.resultCode == Activity.RESULT_OK) {
                 val todoModel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     result.data?.getParcelableExtra(
-                        CreateTodoActivity.EXTRA_TODO_MODEL,
+                        RegisterTodoActivity.EXTRA_TODO_MODEL,
                         TodoModel::class.java
                     )
                 } else {
                     result?.data?.getParcelableExtra(
-                        CreateTodoActivity.EXTRA_TODO_MODEL
+                        RegisterTodoActivity.EXTRA_TODO_MODEL
                     )
                 }
 
                 if (result.data?.getIntExtra(
-                        CreateTodoActivity.EXTRA_ENTRY_TYPE,
+                        RegisterTodoActivity.EXTRA_ENTRY_TYPE,
                         0
                     ) == TodoContentType.DELETE.ordinal
                 ) {
@@ -65,7 +65,7 @@ class TodoFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentTodoBinding.inflate(inflater, container, false)
+        _binding = FragmentTodoListBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -85,9 +85,8 @@ class TodoFragment : Fragment() {
 
             override fun onClickItem(todoModel: TodoModel) {
                 updateTodoLauncher.launch(
-                    CreateTodoActivity.newIntent(
+                    RegisterTodoActivity.newIntentForUpdate(
                         context = requireContext(),
-                        contentType = TodoContentType.UPDATE,
                         todoModel = todoModel
                     )
                 )

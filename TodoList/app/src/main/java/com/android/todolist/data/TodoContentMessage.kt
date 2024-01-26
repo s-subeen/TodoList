@@ -3,7 +3,7 @@ package com.android.todolist.data
 import androidx.annotation.StringRes
 import com.android.todolist.R
 
-enum class TodoCreateMessage(
+enum class TodoContentMessage(
     @StringRes val message: Int
 ) {
 
