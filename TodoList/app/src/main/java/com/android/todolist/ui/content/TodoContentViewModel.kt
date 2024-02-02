@@ -1,4 +1,4 @@
-package com.android.todolist
+package com.android.todolist.ui.content
 
 import android.content.Intent
 import android.view.View
@@ -6,8 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.android.todolist.RegisterTodoActivity.Companion.EXTRA_ENTRY_TYPE
-import com.android.todolist.RegisterTodoActivity.Companion.EXTRA_TODO_MODEL
+import com.android.todolist.R
 import com.android.todolist.data.TodoContentType
 import com.android.todolist.data.TodoContentMessage
 import com.android.todolist.data.ContentButtonUiState
@@ -16,6 +15,8 @@ import com.android.todolist.data.TodoContentUiState
 import com.android.todolist.data.TodoErrorUiState
 import com.android.todolist.data.TodoIntent
 import com.android.todolist.data.TodoModel
+import com.android.todolist.main.Constants.Companion.EXTRA_ENTRY_TYPE
+import com.android.todolist.main.Constants.Companion.EXTRA_TODO_MODEL
 import java.util.UUID
 
 

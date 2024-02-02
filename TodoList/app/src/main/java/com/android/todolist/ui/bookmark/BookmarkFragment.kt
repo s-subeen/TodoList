@@ -1,4 +1,4 @@
-package com.android.todolist.todo
+package com.android.todolist.ui.bookmark
 
 import android.app.Activity
 import android.os.Build
@@ -11,25 +11,36 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
 import com.android.todolist.data.TodoContentType
 import com.android.todolist.data.TodoModel
-import com.android.todolist.RegisterTodoActivity
-import com.android.todolist.databinding.FragmentTodoListBinding
+import com.android.todolist.databinding.FragmentBookmarkBinding
+import com.android.todolist.main.Constants.Companion.EXTRA_ENTRY_TYPE
+import com.android.todolist.main.Constants.Companion.EXTRA_TODO_MODEL
+import com.android.todolist.ui.content.TodoContentActivity
+import com.android.todolist.ui.todo.TodoListViewModel
 
-class TodoListFragment : Fragment() {
-
+class BookmarkFragment : Fragment() {
     companion object {
-        fun newInstance() = TodoListFragment()
+        fun newInstance() = BookmarkFragment()
     }
 
-    private var _binding: FragmentTodoListBinding? = null
-    private val binding: FragmentTodoListBinding get() = _binding!!
+    private var _binding: FragmentBookmarkBinding? = null
+    private val binding: FragmentBookmarkBinding get() = _binding!!
 
-    // TODO sharedViewModel (bookmark에서 공유하고 싶다면)
-    // viewModels() -> Fragment 라이프사이클을 따름
-    // activityViewModels -> activity 라이프사이클을 따름
     private val viewModel: TodoListViewModel by activityViewModels()
 
-    private val todoListAdapter by lazy {
-        TodoListAdapter()
+    private val bookmarkListAdapter by lazy {
+        BookmarkListAdapter(
+            switchClickListener = { todoModel ->
+                viewModel.updateBookmarkStatus(todoModel)
+            },
+            itemClickListener = { todoModel ->
+                updateTodoLauncher.launch(
+                    TodoContentActivity.newIntentForUpdate(
+                        context = requireContext(),
+                        todoModel = todoModel
+                    )
+                )
+            }
+        )
     }
 
     private val updateTodoLauncher =
@@ -37,20 +48,17 @@ class TodoListFragment : Fragment() {
             if (result.resultCode == Activity.RESULT_OK) {
                 val todoModel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     result.data?.getParcelableExtra(
-                        RegisterTodoActivity.EXTRA_TODO_MODEL,
+                        EXTRA_TODO_MODEL,
                         TodoModel::class.java
                     )
                 } else {
                     result?.data?.getParcelableExtra(
-                        RegisterTodoActivity.EXTRA_TODO_MODEL
+                        EXTRA_TODO_MODEL
                     )
                 }
 
-                /**
-                 * viewModel에서 entryType을 구분지으면 됨
-                 */
                 val entryType = result.data?.getIntExtra(
-                    RegisterTodoActivity.EXTRA_ENTRY_TYPE,
+                    EXTRA_ENTRY_TYPE,
                     0
                 ) ?: TodoContentType.UPDATE.ordinal
 
@@ -66,7 +74,7 @@ class TodoListFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentTodoListBinding.inflate(inflater, container, false)
+        _binding = FragmentBookmarkBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -78,31 +86,16 @@ class TodoListFragment : Fragment() {
     }
 
     private fun initView() {
-        binding.recyclerViewTodo.adapter = todoListAdapter
-
-        /**
-         * 리스너를 람다식으로 표현
-         */
-        todoListAdapter.setItemChangedListener(
-            switchClickListener = { todoModel ->
-                viewModel.updateBookmarkStatus(todoModel)
-            },
-            itemClickListener = { todoModel ->
-                updateTodoLauncher.launch(
-                    RegisterTodoActivity.newIntentForUpdate(
-                        context = requireContext(),
-                        todoModel = todoModel
-                    )
-                )
-            }
-        )
+        binding.recyclerViewBookmark.adapter = bookmarkListAdapter
     }
-
-    // 레트로핏 최신 버전 -> 코루틴
 
     private fun initViewModel() = with(viewModel) {
         uiState.observe(viewLifecycleOwner) {
-            todoListAdapter.submitList(it.list)
+            viewModel.filterBookmarkedItems()
+        }
+
+        viewModel.filteredTodoList.observe(viewLifecycleOwner) { filteredList ->
+            bookmarkListAdapter.submitList(filteredList)
         }
     }
 
@@ -111,10 +104,4 @@ class TodoListFragment : Fragment() {
         super.onDestroyView()
     }
 
-    fun addTodoItem(todoModel: TodoModel?) {
-        // 뷰모델로 데이터를 전달
-        viewModel.addTodoItem(todoModel)
-    }
-
 }
-

@@ -1,4 +1,4 @@
-package com.android.todolist.todo
+package com.android.todolist.ui.todo
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

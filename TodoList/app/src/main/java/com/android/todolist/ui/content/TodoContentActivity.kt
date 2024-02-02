@@ -1,4 +1,4 @@
-package com.android.todolist
+package com.android.todolist.ui.content
 
 import android.app.Activity
 import android.content.Context
@@ -12,24 +12,22 @@ import androidx.core.widget.addTextChangedListener
 import com.android.todolist.data.TodoContentType
 import com.android.todolist.data.TodoIntent
 import com.android.todolist.data.TodoModel
-import com.android.todolist.databinding.ActivityRegisterTodoBinding
+import com.android.todolist.databinding.ActivityTodoContentBinding
+import com.android.todolist.main.Constants.Companion.EXTRA_ENTRY_TYPE
+import com.android.todolist.main.Constants.Companion.EXTRA_USER_ENTITY
 
-class RegisterTodoActivity : AppCompatActivity() {
+class TodoContentActivity : AppCompatActivity() {
     companion object {
-        const val EXTRA_TODO_MODEL = "extra_todo_model"
-        const val EXTRA_ENTRY_TYPE = "extra_entry_type"
-        const val EXTRA_USER_ENTITY = "extra_user_entity"
-
         fun newIntentForCreate(
             context: Context
-        ) = Intent(context, RegisterTodoActivity::class.java).apply {
+        ) = Intent(context, TodoContentActivity::class.java).apply {
             putExtra(EXTRA_ENTRY_TYPE, TodoContentType.CREATE.ordinal)
         }
 
         fun newIntentForUpdate(
             context: Context,
             todoModel: TodoModel? = null
-        ) = Intent(context, RegisterTodoActivity::class.java).apply {
+        ) = Intent(context, TodoContentActivity::class.java).apply {
             putExtra(EXTRA_ENTRY_TYPE, TodoContentType.UPDATE.ordinal)
             putExtra(EXTRA_USER_ENTITY, todoModel)
         }
@@ -56,8 +54,8 @@ class RegisterTodoActivity : AppCompatActivity() {
         )
     }
 
-    private val binding: ActivityRegisterTodoBinding by lazy {
-        ActivityRegisterTodoBinding.inflate(layoutInflater)
+    private val binding: ActivityTodoContentBinding by lazy {
+        ActivityTodoContentBinding.inflate(layoutInflater)
     }
 
 
@@ -78,12 +76,12 @@ class RegisterTodoActivity : AppCompatActivity() {
     }
 
     private fun initViewModel() = with(viewModel) {
-        contentUiState.observe(this@RegisterTodoActivity) {
+        contentUiState.observe(this@TodoContentActivity) {
             binding.etTodoTitle.setText(it.title)
             binding.etTodoContent.setText(it.content)
         }
 
-        errorUiState.observe(this@RegisterTodoActivity) {
+        errorUiState.observe(this@TodoContentActivity) {
             it?.let {
                 with(binding) {
                     tvTodoTitle.setText(it.title.message)
@@ -92,19 +90,16 @@ class RegisterTodoActivity : AppCompatActivity() {
             }
         }
 
-        buttonUiState.observe(this@RegisterTodoActivity) { buttonState ->
+        buttonUiState.observe(this@TodoContentActivity) { buttonState ->
             with(binding.btnRegisterTodo) {
                 setText(buttonState.buttonUiState.text)
                 isEnabled = buttonState.buttonUiState.enabled
             }
 
-            /**
-             * btnDeleteItem.visibility viewModel로 옮겨서 처리
-             */
             binding.btnDeleteItem.visibility = buttonState.deleteButtonVisibility
         }
 
-        intentLiveData.observe(this@RegisterTodoActivity) { intent ->
+        intentLiveData.observe(this@TodoContentActivity) { intent ->
             when (intent) {
                 is TodoIntent.RegularIntent -> {
                     setResult(Activity.RESULT_OK, intent.intent)
@@ -125,19 +120,13 @@ class RegisterTodoActivity : AppCompatActivity() {
 
         ivGoingBackwards.setOnClickListener { finish() }
 
-        btnRegisterTodo.setOnClickListener { // 등록/수정 버튼 클릭 했을 때
+        btnRegisterTodo.setOnClickListener {
             val title = etTodoTitle.text.toString()
             val content = etTodoContent.text.toString()
-            /**
-             * viewmodel로 옮겨서 처리
-             */
             viewModel.createTodoModelIntent(title, content)
         }
 
-        btnDeleteItem.setOnClickListener { // 삭제 버튼 클릭 했을 때
-            /**
-             * viewmodel로 옮겨서 처리
-             */
+        btnDeleteItem.setOnClickListener {
             viewModel.createDeleteIntent()
         }
     }

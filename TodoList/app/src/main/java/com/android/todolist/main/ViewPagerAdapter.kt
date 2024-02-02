@@ -4,13 +4,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.android.todolist.R
-import com.android.todolist.bookmark.BookmarkFragment
-import com.android.todolist.data.TodoMainTab
-import com.android.todolist.todo.TodoListFragment
+import com.android.todolist.ui.bookmark.BookmarkFragment
+import com.android.todolist.ui.todo.TodoListFragment
 
 class ViewPagerAdapter(fragmentActivity: FragmentActivity) :
     FragmentStateAdapter(fragmentActivity) {
-    private val fragments = listOf<TodoMainTab>(
+    private val fragments = listOf(
         TodoMainTab(
             fragment = TodoListFragment.newInstance(),
             title = R.string.fragment_todo,

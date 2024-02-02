@@ -1,28 +1,21 @@
-package com.android.todolist.bookmark
+package com.android.todolist.ui.bookmark
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.android.todolist.TodoDiffUtil
+import com.android.todolist.util.TodoDiffUtil
 import com.android.todolist.data.TodoModel
 import com.android.todolist.databinding.ItemTodoListBinding
 
-class BookmarkListAdapter : ListAdapter<TodoModel, BookmarkListAdapter.ViewHolder>(TodoDiffUtil) {
-
-    private var switchClickListener: ((TodoModel) -> Unit)? = null
-    private var itemClickListener: ((TodoModel) -> Unit)? = null
-
-    fun setItemChangedListener(
-        switchClickListener: ((TodoModel) -> Unit)? = null,
-        itemClickListener: ((TodoModel) -> Unit)? = null
-    ) {
-        this.switchClickListener = switchClickListener
-        this.itemClickListener = itemClickListener
-    }
+class BookmarkListAdapter(
+    private val itemClickListener: (TodoModel) -> Unit,
+    private val switchClickListener: (TodoModel) -> Unit
+) : ListAdapter<TodoModel, BookmarkListAdapter.ViewHolder>(TodoDiffUtil) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ItemTodoListBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding =
+            ItemTodoListBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding, switchClickListener, itemClickListener)
     }
 

@@ -8,9 +8,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.viewpager2.widget.ViewPager2
 import com.android.todolist.data.TodoModel
 import com.android.todolist.databinding.ActivityMainBinding
-import com.android.todolist.todo.TodoListFragment
-import com.android.todolist.RegisterTodoActivity
-import com.android.todolist.RegisterTodoActivity.Companion.EXTRA_TODO_MODEL
+import com.android.todolist.main.Constants.Companion.EXTRA_TODO_MODEL
+import com.android.todolist.ui.todo.TodoListFragment
+import com.android.todolist.ui.content.TodoContentActivity
 import com.google.android.material.tabs.TabLayoutMediator
 
 class MainActivity : AppCompatActivity() {
@@ -80,7 +80,7 @@ class MainActivity : AppCompatActivity() {
     private fun onCreateTodoItem() {
         binding.btnAddTodoItem.setOnClickListener {
             contentTodoLauncher.launch(
-                RegisterTodoActivity.newIntentForCreate(
+                TodoContentActivity.newIntentForCreate(
                     this@MainActivity
                 )
             )
