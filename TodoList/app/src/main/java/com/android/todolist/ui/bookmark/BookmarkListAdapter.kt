@@ -1,48 +1,78 @@
 package com.android.todolist.ui.bookmark
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.android.todolist.util.TodoDiffUtil
-import com.android.todolist.data.TodoModel
 import com.android.todolist.databinding.ItemTodoListBinding
+import com.android.todolist.databinding.ItemUnknownBinding
+import com.android.todolist.ui.todo.TodoListItem
+import com.android.todolist.ui.todo.TodoListViewType
 
 class BookmarkListAdapter(
-    private val itemClickListener: (TodoModel) -> Unit,
-    private val switchClickListener: (TodoModel) -> Unit
-) : ListAdapter<TodoModel, BookmarkListAdapter.ViewHolder>(TodoDiffUtil) {
+    private val onClickItem: (Int, TodoListItem) -> Unit,
+    private val onBookmarkChecked: (Int, TodoListItem) -> Unit
+) : ListAdapter<TodoListItem, BookmarkListAdapter.TodoViewHolder>(TodoDiffUtil) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding =
-            ItemTodoListBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ViewHolder(binding, switchClickListener, itemClickListener)
+    abstract class TodoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        abstract fun onBind(item: TodoListItem)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = getItem(position)
-        holder.bind(item)
-    }
+    override fun getItemViewType(position: Int): Int = when (getItem(position)) {
+        is TodoListItem.Item -> TodoListViewType.ITEM
+        else -> TodoListViewType.UNKNOWN
+    }.ordinal
 
-    class ViewHolder(
-        private val binding: ItemTodoListBinding,
-        private val switchClickListener: ((TodoModel) -> Unit)?,
-        private val itemClickListener: ((TodoModel) -> Unit)?
-    ) :
-        RecyclerView.ViewHolder(binding.root) {
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): TodoViewHolder =
+        when (TodoListViewType.from(viewType)) {
+            TodoListViewType.ITEM -> TodoItemViewHolder(
+                ItemTodoListBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+                onClickItem,
+                onBookmarkChecked
+            )
 
-        fun bind(item: TodoModel) = with(binding) {
-            tvTodoTitle.text = item.title
-            tvTodoContent.text = item.content
-            switchTodo.isChecked = item.isBookmarked
-
-            switchTodo.setOnClickListener {
-                switchClickListener?.invoke(item)
-            }
-
-            itemLayout.setOnClickListener {
-                itemClickListener?.invoke(item)
-            }
+            else -> TodoUnknownViewHolder(
+                ItemUnknownBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+            )
         }
+
+    override fun onBindViewHolder(holder: TodoViewHolder, position: Int) {
+        holder.onBind(getItem(position))
     }
+
+    class TodoItemViewHolder(
+        private val binding: ItemTodoListBinding,
+        private val onClickItem: (Int, TodoListItem) -> Unit,
+        private val onBookmarkChecked: (Int, TodoListItem) -> Unit
+    ) : TodoViewHolder(binding.root) {
+        override fun onBind(item: TodoListItem) {
+            if (item is TodoListItem.Item) {
+                binding.tvTodoTitle.text = item.title
+                binding.tvTodoContent.text = item.content
+                binding.switchTodo.isChecked = item.isBookmark
+
+                binding.switchTodo.setOnClickListener {
+                    onClickItem.invoke(bindingAdapterPosition, item)
+                }
+
+                binding.itemLayout.setOnClickListener {
+                    onBookmarkChecked.invoke(bindingAdapterPosition, item)
+                }
+            }
+
+        }
+
+    }
+
+    class TodoUnknownViewHolder(
+        private val binding: ItemUnknownBinding,
+    ) : TodoViewHolder(binding.root) {
+        override fun onBind(item: TodoListItem) = Unit
+    }
+
 }

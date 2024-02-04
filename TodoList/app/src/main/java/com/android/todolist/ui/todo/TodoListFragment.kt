@@ -9,12 +9,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
-import com.android.todolist.data.TodoContentType
 import com.android.todolist.data.TodoModel
-import com.android.todolist.ui.content.TodoContentActivity
 import com.android.todolist.databinding.FragmentTodoListBinding
-import com.android.todolist.main.Constants.Companion.EXTRA_ENTRY_TYPE
-import com.android.todolist.main.Constants.Companion.EXTRA_TODO_MODEL
+import com.android.todolist.ui.content.Constants.Companion.EXTRA_ENTRY_TYPE
+import com.android.todolist.ui.content.Constants.Companion.EXTRA_TODO_MODEL
+import com.android.todolist.ui.content.TodoContentActivity
+import com.android.todolist.ui.content.TodoContentEntryType
 
 class TodoListFragment : Fragment() {
 
@@ -29,24 +29,22 @@ class TodoListFragment : Fragment() {
 
     private val todoListAdapter by lazy {
         TodoListAdapter(
-            switchClickListener = { todoModel ->
-                viewModel.updateBookmarkStatus(todoModel)
-            },
-            itemClickListener = { todoModel ->
-                updateTodoLauncher.launch(
-                    TodoContentActivity.newIntentForUpdate(
-                        context = requireContext(),
-                        todoModel = todoModel
-                    )
+            onClickItem = { position, item ->
+                viewModel.onClickItem(
+                    position,
+                    item
                 )
-            }
+            },
+            onBookmarkChecked = { position, item ->
+
+            },
         )
     }
 
     private val updateTodoLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
-                val todoModel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val entity = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     result.data?.getParcelableExtra(
                         EXTRA_TODO_MODEL,
                         TodoModel::class.java
@@ -57,18 +55,24 @@ class TodoListFragment : Fragment() {
                     )
                 }
 
-                val entryType = result.data?.getIntExtra(
-                    EXTRA_ENTRY_TYPE,
-                    0
-                ) ?: TodoContentType.UPDATE.ordinal
+                val entryType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    result.data?.getParcelableExtra(
+                        EXTRA_ENTRY_TYPE,
+                        TodoContentEntryType::class.java
+                    )
+                } else {
+                    result?.data?.getParcelableExtra(
+                        EXTRA_ENTRY_TYPE
+                    )
+                }
 
-                viewModel.handleTodoItem(entryType, todoModel)
+                viewModel.updateTodoItem(
+                    entryType,
+                    entity,
+                )
+
             }
         }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -92,6 +96,20 @@ class TodoListFragment : Fragment() {
     private fun initViewModel() = with(viewModel) {
         uiState.observe(viewLifecycleOwner) {
             todoListAdapter.submitList(it.list)
+        }
+
+        event.observe(viewLifecycleOwner) {
+            when (it) {
+                is TodoListEvent.OpenContent -> {
+                    updateTodoLauncher.launch(
+                        TodoContentActivity.newIntentForUpdate(
+                            requireContext(),
+                            it.position,
+                            it.item
+                        )
+                    )
+                }
+            }
         }
     }
 

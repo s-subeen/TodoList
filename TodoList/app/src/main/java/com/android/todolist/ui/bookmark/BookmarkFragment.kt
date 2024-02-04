@@ -9,12 +9,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
-import com.android.todolist.data.TodoContentType
 import com.android.todolist.data.TodoModel
 import com.android.todolist.databinding.FragmentBookmarkBinding
-import com.android.todolist.main.Constants.Companion.EXTRA_ENTRY_TYPE
-import com.android.todolist.main.Constants.Companion.EXTRA_TODO_MODEL
-import com.android.todolist.ui.content.TodoContentActivity
+import com.android.todolist.ui.content.Constants.Companion.EXTRA_ENTRY_TYPE
+import com.android.todolist.ui.content.Constants.Companion.EXTRA_TODO_MODEL
 import com.android.todolist.ui.todo.TodoListViewModel
 
 class BookmarkFragment : Fragment() {
@@ -29,16 +27,11 @@ class BookmarkFragment : Fragment() {
 
     private val bookmarkListAdapter by lazy {
         BookmarkListAdapter(
-            switchClickListener = { todoModel ->
-                viewModel.updateBookmarkStatus(todoModel)
+            onClickItem = { position, item ->
+
             },
-            itemClickListener = { todoModel ->
-                updateTodoLauncher.launch(
-                    TodoContentActivity.newIntentForUpdate(
-                        context = requireContext(),
-                        todoModel = todoModel
-                    )
-                )
+            onBookmarkChecked = { position, item ->
+
             }
         )
     }
@@ -46,7 +39,7 @@ class BookmarkFragment : Fragment() {
     private val updateTodoLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
-                val todoModel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val entity = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     result.data?.getParcelableExtra(
                         EXTRA_TODO_MODEL,
                         TodoModel::class.java
@@ -57,12 +50,22 @@ class BookmarkFragment : Fragment() {
                     )
                 }
 
-                val entryType = result.data?.getIntExtra(
-                    EXTRA_ENTRY_TYPE,
-                    0
-                ) ?: TodoContentType.UPDATE.ordinal
+                val entryType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    result.data?.getParcelableExtra(
+                        EXTRA_ENTRY_TYPE,
+                        TodoModel::class.java
+                    )
+                } else {
+                    result?.data?.getParcelableExtra(
+                        EXTRA_ENTRY_TYPE
+                    )
+                }
 
-                viewModel.handleTodoItem(entryType, todoModel)
+                viewModel.updateTodoItem(
+                    entity,
+                    entryType
+                )
+
             }
         }
 
@@ -91,12 +94,9 @@ class BookmarkFragment : Fragment() {
 
     private fun initViewModel() = with(viewModel) {
         uiState.observe(viewLifecycleOwner) {
-            viewModel.filterBookmarkedItems()
+
         }
 
-        viewModel.filteredTodoList.observe(viewLifecycleOwner) { filteredList ->
-            bookmarkListAdapter.submitList(filteredList)
-        }
     }
 
     override fun onDestroyView() {

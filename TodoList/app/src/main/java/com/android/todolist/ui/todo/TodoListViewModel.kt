@@ -3,20 +3,17 @@ package com.android.todolist.ui.todo
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.android.todolist.data.TodoContentType
 import com.android.todolist.data.TodoModel
-import com.android.todolist.data.TodoUiState
+import com.android.todolist.ui.content.TodoContentEntryType
 
 class TodoListViewModel : ViewModel() {
+
+    private val _event: MutableLiveData<TodoListEvent> = MutableLiveData()
+    val event: LiveData<TodoListEvent> get() = _event
+
     private val _uiState: MutableLiveData<TodoUiState> = MutableLiveData(TodoUiState.init())
     val uiState: LiveData<TodoUiState> get() = _uiState
 
-    private val _filteredTodoList: MutableLiveData<List<TodoModel>> = MutableLiveData()
-    val filteredTodoList: LiveData<List<TodoModel>> get() = _filteredTodoList
-
-    fun filterBookmarkedItems() {
-        _filteredTodoList.value = uiState.value?.list?.filter { it.isBookmarked } ?: emptyList()
-    }
 
     fun addTodoItem(todoModel: TodoModel?) {
         if (todoModel == null) {
@@ -24,60 +21,78 @@ class TodoListViewModel : ViewModel() {
         }
         _uiState.value = uiState.value?.copy(
             list = uiState.value?.list.orEmpty().toMutableList().apply {
-                add(todoModel)
+                add(createTodoItem(todoModel))
             }
         )
     }
 
-    fun updateBookmarkStatus(todoModel: TodoModel?) {
-        if (todoModel == null) {
-            return
-        }
+    private fun createTodoItem(model: TodoModel): TodoListItem = TodoListItem.Item(
+        id = model.id,
+        title = model.title,
+        content = model.content
+    )
 
-        val updatedList = uiState.value?.list?.map {
-            if (it.id == todoModel.id) {
-                it.copy(isBookmarked = !it.isBookmarked)
-            } else {
-                it
-            }
-        }
-        _uiState.value = uiState.value?.copy(list = updatedList.orEmpty())
-    }
-
-    private fun updateTodoItem(todoModel: TodoModel?) {
-        if (todoModel == null) {
-            return
-        }
-
-        val updatedList = uiState.value?.list?.map {
-            if (it.id == todoModel.id) {
-                it.copy(
-                    title = todoModel.title,
-                    content = todoModel.content
+    fun onClickItem(position: Int, item: TodoListItem) {
+        _event.value = TodoListEvent.OpenContent(
+            position,
+            when (item) {
+                is TodoListItem.Item -> TodoModel(
+                    id = item.id,
+                    title = item.title,
+                    content = item.content
                 )
-            } else {
-                it
             }
-        }
-
-        _uiState.value = uiState.value?.copy(list = updatedList.orEmpty())
+        )
     }
 
-    private fun deleteTodoItem(todoModel: TodoModel?) {
-        if (todoModel == null) {
+    fun updateTodoItem(
+        entryType: TodoContentEntryType?,
+        entity: TodoModel?
+    ) {
+        if (entity == null) {
             return
         }
 
-        val updatedList = uiState.value?.list?.filter { it.id != todoModel.id }
-        _uiState.value = uiState.value?.copy(list = updatedList.orEmpty())
-    }
+        val mutableList = uiState.value?.list.orEmpty().toMutableList()
 
-    fun handleTodoItem(entryType: Int, todoModel: TodoModel?) {
         when (entryType) {
-            TodoContentType.DELETE.ordinal -> deleteTodoItem(todoModel)
-            TodoContentType.UPDATE.ordinal -> updateTodoItem(todoModel)
-            else -> throw IllegalArgumentException("Invalid entry type: $entryType")
+            TodoContentEntryType.UPDATE -> {
+                val position = mutableList.indexOfFirst {
+                    when (it) {
+                        is TodoListItem.Item -> {
+                            it.id == entity.id
+                        }
+                    }
+                }
+
+                uiState.value?.copy(
+                    list = mutableList.also { list ->
+                        list[position] = createTodoItem(
+                            entity
+                        )
+                    }
+                )
+            }
+
+            TodoContentEntryType.DELETE -> {
+                uiState.value?.copy(
+                    list = mutableList.apply {
+                        removeIf {
+                            when (it) {
+                                is TodoListItem.Item -> {
+                                    it.id == entity.id
+                                }
+                            }
+                        }
+                    }
+                )
+            }
+
+            else -> null
+        }?.also { state ->
+            _uiState.value = state
         }
     }
+
 
 }

@@ -36,18 +36,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_register_title" />
 
-    <TextView
-        android:id="@+id/tv_todo_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:text="@string/error_message_title"
-        android:textColor="#ff0000"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/et_todo_title" />
-
     <EditText
         android:id="@+id/et_todo_content"
         android:layout_width="match_parent"
@@ -57,19 +45,7 @@
         android:hint="@string/error_message_content"
         android:textSize="16sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_todo_title" />
-
-    <TextView
-        android:id="@+id/tv_todo_content"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:text="@string/error_message_content"
-        android:textColor="#ff0000"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/et_todo_content" />
+        app:layout_constraintTop_toBottomOf="@id/et_todo_title" />
 
     <Button
         android:id="@+id/btn_delete_item"
@@ -78,16 +54,30 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:text="@string/button_delete"
-        app:layout_constraintBottom_toTopOf="@id/btn_register_todo"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/btn_update_item"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
-        android:id="@+id/btn_register_todo"
+        android:id="@+id/btn_update_item"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:text="@string/button_update"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/btn_submit_item"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btn_submit_item"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:text="@string/button_create"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
